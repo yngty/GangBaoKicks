@@ -7,6 +7,7 @@ struct ContentView: View {
     @EnvironmentObject private var store: KickStore
     @EnvironmentObject private var syncService: WatchSyncService
     @EnvironmentObject private var themeController: ThemeController
+    @Environment(\.scenePhase) private var scenePhase
     @State private var reminderTimes: [ReminderClockTime] = [ReminderClockTime.defaultEvening]
     @State private var reminderEnabled = false
     @State private var hasLoadedReminderPreferences = false
@@ -91,8 +92,11 @@ struct ContentView: View {
             }
             .onChange(of: store.sessions) { _, _ in prepareExport() }
             .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { date in
-                currentDate = date
-                handleCountdownTick(at: date)
+                refreshTimeline(at: date)
+            }
+            .onChange(of: scenePhase) { _, phase in
+                guard phase == .active else { return }
+                refreshTimeline(at: .now)
             }
         }
     }
@@ -584,6 +588,11 @@ struct ContentView: View {
         } else {
             showToast(NSLocalizedString("counter.doneToast", comment: "Time reached toast"))
         }
+    }
+
+    private func refreshTimeline(at date: Date) {
+        currentDate = date
+        handleCountdownTick(at: date)
     }
 
     private func showToast(_ message: String) {

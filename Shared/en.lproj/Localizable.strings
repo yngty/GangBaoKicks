@@ -25,8 +25,12 @@
 "reminder.title" = "Reminder";
 "reminder.daily" = "Daily reminder";
 "reminder.time" = "Time";
+"reminder.addTime" = "Add reminder time";
+"reminder.removeTime" = "Remove reminder time";
 "history.title" = "History";
 "history.empty" = "No sessions yet";
+"history.viewAll" = "View all";
+"history.allTitle" = "All history";
 "history.last" = "Last";
 "history.kicks" = "%d kicks";
 "history.summary" = "%d effective · %d possible repeats";
@@ -44,6 +48,7 @@
 "settings.duplicateInterval" = "Repeat interval";
 "settings.filterRepeats" = "Filter repeat taps";
 "settings.autoStop" = "Auto-stop when time is reached";
+"settings.haptics" = "Haptic feedback";
 "settings.privacy" = "Data is stored on this device. Sharing happens only when you export.";
 "settings.done" = "Done";
 "export.title" = "Export";

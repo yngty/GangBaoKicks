@@ -25,8 +25,12 @@
 "reminder.title" = "提醒";
 "reminder.daily" = "每日提醒";
 "reminder.time" = "时间";
+"reminder.addTime" = "添加提醒时间";
+"reminder.removeTime" = "删除提醒时间";
 "history.title" = "历史记录";
 "history.empty" = "还没有记录";
+"history.viewAll" = "查看全部";
+"history.allTitle" = "全部历史";
 "history.last" = "上次";
 "history.kicks" = "%d 次胎动";
 "history.summary" = "%d 次有效 · %d 次重复点击";
@@ -44,6 +48,7 @@
 "settings.duplicateInterval" = "重复间隔";
 "settings.filterRepeats" = "过滤重复点击";
 "settings.autoStop" = "到点自动结束";
+"settings.haptics" = "触感反馈";
 "settings.privacy" = "数据保存在本机。只有主动导出时才会分享。";
 "settings.done" = "完成";
 "export.title" = "导出";

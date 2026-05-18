@@ -1,17 +1,31 @@
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 struct ContentView: View {
     @EnvironmentObject private var store: KickStore
     @EnvironmentObject private var syncService: WatchSyncService
     @EnvironmentObject private var themeController: ThemeController
-    @State private var reminderDate = Calendar.current.date(from: DateComponents(hour: 20, minute: 0)) ?? .now
+    @State private var reminderTimes: [ReminderClockTime] = [ReminderClockTime.defaultEvening]
     @State private var reminderEnabled = false
+    @State private var hasLoadedReminderPreferences = false
     @State private var exportURL: URL?
     @State private var toast: ToastState?
     @State private var confirmation: ConfirmationState?
     @State private var showingSettings = false
     @State private var timeReachedSessionID: UUID?
     @State private var currentDate = Date.now
+    @State private var kickPadTapBounce = false
+    @State private var kickPadRipple = false
+    @State private var kickPadRippleCenter: CGPoint = .zero
+    @State private var kickPadTouchTracking = false
+    @State private var kickCountPop = false
+    @FocusState private var isNoteEditorFocused: Bool
+
+    private let reminderEnabledKey = "gangbao.reminderEnabled"
+    private let reminderTimesKey = "gangbao.reminderTimes"
+    private let maxReminderTimes = 5
 
     private var theme: AppTheme { themeController.selectedTheme }
 
@@ -32,10 +46,24 @@ struct ContentView: View {
                     .padding(.top, 10)
                     .padding(.bottom, 32)
                 }
+                .scrollDismissesKeyboard(.immediately)
                 .scrollBounceBehavior(.always, axes: .vertical)
+                .simultaneousGesture(
+                    TapGesture().onEnded {
+                        dismissNoteEditor()
+                    }
+                )
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar(.hidden, for: .navigationBar)
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("settings.done") {
+                        dismissNoteEditor()
+                    }
+                }
+            }
             .sheet(isPresented: $showingSettings) {
                 SettingsView()
                     .environmentObject(store)
@@ -57,7 +85,10 @@ struct ContentView: View {
             }
             .animation(.spring(response: 0.26, dampingFraction: 0.82), value: toast)
             .animation(.spring(response: 0.26, dampingFraction: 0.86), value: confirmation)
-            .onAppear(perform: prepareExport)
+            .onAppear {
+                prepareExport()
+                loadReminderPreferencesIfNeeded()
+            }
             .onChange(of: store.sessions) { _, _ in prepareExport() }
             .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { date in
                 currentDate = date
@@ -154,16 +185,20 @@ struct ContentView: View {
                     .monospacedDigit()
                     .foregroundStyle(theme.primary)
                     .contentTransition(.numericText())
+                    .scaleEffect(kickCountPop ? 1.06 : 1)
                     .accessibilityLabel(Text("counter.effective"))
                     .accessibilityValue("\(session.effectiveCount)")
 
                 Text(String(format: NSLocalizedString("counter.observe", comment: "Observation time"), session.duration(at: currentDate).formattedDuration, session.targetDurationText))
                     .font(.subheadline.weight(.medium))
+                    .monospacedDigit()
                     .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity)
 
                 ProgressView(value: session.progress(at: currentDate))
                     .tint(theme.primary)
             }
+            .frame(maxWidth: .infinity)
 
             HStack(spacing: 10) {
                 StatPill(title: "counter.effective", value: "\(session.effectiveCount)", theme: theme)
@@ -171,12 +206,49 @@ struct ContentView: View {
             }
 
             Button {
+                dismissNoteEditor()
+                triggerKickPadTapEffects()
                 recordKick()
             } label: {
-                Label("counter.kick", systemImage: "plus.circle.fill")
-                    .frame(maxWidth: .infinity)
+                GeometryReader { geometry in
+                    ZStack {
+                        Circle()
+                            .fill(.white.opacity(0.24))
+                            .frame(width: 40, height: 40)
+                            .position(kickPadRippleCenter == .zero ? CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2) : kickPadRippleCenter)
+                            .scaleEffect(kickPadRipple ? 5.0 : 0.1)
+                            .opacity(kickPadRipple ? 0 : 0.38)
+
+                        VStack(spacing: 8) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 34, weight: .semibold))
+
+                            Text("counter.kick")
+                                .font(.title3.weight(.bold))
+                        }
+                    }
+                    .onAppear {
+                        if kickPadRippleCenter == .zero {
+                            kickPadRippleCenter = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, minHeight: 124)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
-            .buttonStyle(PulseButtonStyle(tint: theme.primary))
+            .scaleEffect(kickPadTapBounce ? 0.94 : 1)
+            .buttonStyle(KickPadButtonStyle(theme: theme))
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0, coordinateSpace: .local)
+                    .onChanged { value in
+                        guard !kickPadTouchTracking else { return }
+                        kickPadTouchTracking = true
+                        kickPadRippleCenter = value.location
+                    }
+                    .onEnded { _ in
+                        kickPadTouchTracking = false
+                    }
+            )
 
             HStack(spacing: 10) {
                 Button {
@@ -227,17 +299,34 @@ struct ContentView: View {
     }
 
     private func noteEditor(_ session: KickSession) -> some View {
-        TextField("details.note", text: Binding(
-            get: { store.activeSession?.note ?? "" },
-            set: { note in
-                store.updateActiveSession(note: note, tags: store.activeSession?.tags ?? [])
-                syncService.publish(store.syncPayload)
+        VStack(alignment: .trailing, spacing: 8) {
+            TextField("details.note", text: Binding(
+                get: { store.activeSession?.note ?? "" },
+                set: { note in
+                    store.updateActiveSession(note: note, tags: store.activeSession?.tags ?? [])
+                    syncService.publish(store.syncPayload)
+                }
+            ), axis: .vertical)
+            .focused($isNoteEditorFocused)
+            .submitLabel(.done)
+            .onSubmit {
+                dismissNoteEditor()
             }
-        ), axis: .vertical)
-        .lineLimit(2...4)
-        .padding(12)
-        .background(theme.background.opacity(0.75), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .disabled(session.id != store.activeSession?.id)
+            .lineLimit(2...4)
+            .padding(12)
+            .background(theme.background.opacity(0.75), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .disabled(session.id != store.activeSession?.id)
+
+            if isNoteEditorFocused {
+                Button("settings.done") {
+                    dismissNoteEditor()
+                }
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(theme.primary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+            }
+        }
     }
 
     private func tagSelector(_ session: KickSession) -> some View {
@@ -258,21 +347,57 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("reminder.title")
                 .font(.headline)
+
             Toggle("reminder.daily", isOn: $reminderEnabled)
                 .tint(theme.primary)
-                .onChange(of: reminderEnabled) { _, enabled in
-                    if enabled {
-                        scheduleReminder()
-                    } else {
-                        ReminderScheduler.cancelDailyReminder()
-                    }
+                .onChange(of: reminderEnabled) { _, _ in
+                    persistReminderPreferences()
+                    syncReminderScheduling()
                 }
 
-            DatePicker("reminder.time", selection: $reminderDate, displayedComponents: .hourAndMinute)
-                .disabled(!reminderEnabled)
-                .onChange(of: reminderDate) { _, _ in
-                    if reminderEnabled { scheduleReminder() }
+            if reminderEnabled {
+                VStack(spacing: 10) {
+                    ForEach(reminderTimes.indices, id: \.self) { index in
+                        HStack(spacing: 10) {
+                            DatePicker(
+                                "reminder.time",
+                                selection: reminderTimeBinding(at: index),
+                                displayedComponents: .hourAndMinute
+                            )
+                            .labelsHidden()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                            Button {
+                                removeReminderTime(at: index)
+                            } label: {
+                                Image(systemName: "minus.circle.fill")
+                                    .font(.title3)
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundStyle(reminderTimes.count > 1 ? Color.red : Color.secondary)
+                            .disabled(reminderTimes.count <= 1)
+                            .accessibilityLabel(Text("reminder.removeTime"))
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(theme.background.opacity(0.72), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    }
+
+                    Button {
+                        addReminderTime()
+                    } label: {
+                        Label("reminder.addTime", systemImage: "plus.circle.fill")
+                            .font(.subheadline.weight(.semibold))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(theme.primary)
+                    .background(theme.background.opacity(0.62), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .disabled(reminderTimes.count >= maxReminderTimes)
+                    .opacity(reminderTimes.count >= maxReminderTimes ? 0.45 : 1)
                 }
+            }
         }
         .padding(16)
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
@@ -285,8 +410,25 @@ struct ContentView: View {
 
     private var historyCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("history.title")
-                .font(.headline)
+            HStack(alignment: .firstTextBaseline) {
+                Text("history.title")
+                    .font(.headline)
+                Spacer()
+                if !store.sortedSessions.isEmpty {
+                    NavigationLink {
+                        AllHistoryView(allSessions: store.sortedSessions, theme: theme)
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("history.viewAll")
+                            Image(systemName: "chevron.right")
+                                .font(.caption.weight(.semibold))
+                        }
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(theme.primary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
 
             if store.sortedSessions.isEmpty {
                 ContentUnavailableView("history.empty", systemImage: "clock.badge.questionmark")
@@ -297,21 +439,7 @@ struct ContentView: View {
                     NavigationLink {
                         SessionDetailView(session: session, theme: theme)
                     } label: {
-                        HStack(spacing: 12) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(session.dateText)
-                                    .font(.subheadline.weight(.semibold))
-                                    .foregroundStyle(.primary)
-                                Text(String(format: NSLocalizedString("history.summary", comment: "Session summary"), session.effectiveCount, session.duplicateCount))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            Text("\(session.effectiveCount)")
-                                .font(.title3.weight(.bold))
-                                .monospacedDigit()
-                                .foregroundStyle(theme.primary)
-                        }
+                        HistoryRow(session: session, theme: theme)
                         .padding(.vertical, 8)
                         .contentShape(Rectangle())
                     }
@@ -332,9 +460,75 @@ struct ContentView: View {
         let result = store.addKick()
         syncService.publish(store.syncPayload)
 
+        if result == .counted {
+            triggerSuccessfulKickFeedback()
+        }
+
         if result == .duplicate {
+            triggerDuplicateKickFeedback()
             showToast(NSLocalizedString("counter.duplicateToast", comment: "Duplicate toast"))
         }
+    }
+
+    private func triggerKickPadTapEffects() {
+        triggerKickPadTapBounce()
+        triggerKickPadRipple()
+    }
+
+    private func triggerKickPadTapBounce() {
+        withAnimation(.easeOut(duration: 0.08)) {
+            kickPadTapBounce = true
+        }
+
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(0.08))
+            withAnimation(.spring(response: 0.24, dampingFraction: 0.62)) {
+                kickPadTapBounce = false
+            }
+        }
+    }
+
+    private func triggerKickPadRipple() {
+        kickPadRipple = false
+
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(10))
+            withAnimation(.easeOut(duration: 0.45)) {
+                kickPadRipple = true
+            }
+
+            try? await Task.sleep(for: .seconds(0.45))
+            kickPadRipple = false
+        }
+    }
+
+    private func triggerSuccessfulKickFeedback() {
+        withAnimation(.spring(response: 0.16, dampingFraction: 0.56)) {
+            kickCountPop = true
+        }
+
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(0.12))
+            withAnimation(.spring(response: 0.22, dampingFraction: 0.62)) {
+                kickCountPop = false
+            }
+        }
+
+        guard store.hapticFeedbackEnabled else { return }
+
+        #if canImport(UIKit)
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred(intensity: 0.95)
+        #endif
+    }
+
+    private func triggerDuplicateKickFeedback() {
+        guard store.hapticFeedbackEnabled else { return }
+
+        #if canImport(UIKit)
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.warning)
+        #endif
     }
 
     private func askToEnd(_ session: KickSession) {
@@ -401,15 +595,171 @@ struct ContentView: View {
         }
     }
 
-    private func scheduleReminder() {
-        let components = Calendar.current.dateComponents([.hour, .minute], from: reminderDate)
-        Task {
-            try? await ReminderScheduler.scheduleDailyReminder(hour: components.hour ?? 20, minute: components.minute ?? 0)
+    private func loadReminderPreferencesIfNeeded() {
+        guard !hasLoadedReminderPreferences else { return }
+        hasLoadedReminderPreferences = true
+
+        let defaults = UserDefaults.standard
+        reminderEnabled = defaults.object(forKey: reminderEnabledKey) as? Bool ?? false
+
+        if let data = defaults.data(forKey: reminderTimesKey),
+           let storedTimes = try? JSONDecoder().decode([ReminderClockTime].self, from: data),
+           !storedTimes.isEmpty {
+            reminderTimes = normalizedReminderTimes(from: storedTimes)
+        } else {
+            reminderTimes = [ReminderClockTime.defaultEvening]
+        }
+
+        syncReminderScheduling()
+    }
+
+    private func persistReminderPreferences() {
+        let defaults = UserDefaults.standard
+        let normalized = normalizedReminderTimes(from: reminderTimes)
+        reminderTimes = normalized
+        defaults.set(reminderEnabled, forKey: reminderEnabledKey)
+        defaults.set(try? JSONEncoder().encode(normalized), forKey: reminderTimesKey)
+    }
+
+    private func syncReminderScheduling() {
+        if reminderEnabled {
+            Task {
+                try? await ReminderScheduler.scheduleDailyReminders(times: reminderTimes)
+            }
+        } else {
+            ReminderScheduler.cancelDailyReminders()
+        }
+    }
+
+    private func reminderTimeBinding(at index: Int) -> Binding<Date> {
+        Binding(
+            get: {
+                let time = reminderTimes[index]
+                let components = DateComponents(hour: time.hour, minute: time.minute)
+                return Calendar.current.date(from: components) ?? .now
+            },
+            set: { newDate in
+                updateReminderTime(at: index, to: newDate)
+            }
+        )
+    }
+
+    private func updateReminderTime(at index: Int, to date: Date) {
+        guard reminderTimes.indices.contains(index) else { return }
+        let components = Calendar.current.dateComponents([.hour, .minute], from: date)
+        reminderTimes[index] = ReminderClockTime(hour: components.hour ?? 20, minute: components.minute ?? 0)
+        persistReminderPreferences()
+        syncReminderScheduling()
+    }
+
+    private func addReminderTime() {
+        guard reminderTimes.count < maxReminderTimes else { return }
+
+        let existing = Set(reminderTimes.map(\.minutesFromMidnight))
+        let start = reminderTimes.last?.minutesFromMidnight ?? ReminderClockTime.defaultEvening.minutesFromMidnight
+        var candidate = start
+        var attempts = 0
+
+        while attempts < 24 {
+            candidate = (candidate + 60) % (24 * 60)
+            if !existing.contains(candidate) { break }
+            attempts += 1
+        }
+
+        reminderTimes.append(ReminderClockTime(hour: candidate / 60, minute: candidate % 60))
+        persistReminderPreferences()
+        syncReminderScheduling()
+    }
+
+    private func removeReminderTime(at index: Int) {
+        guard reminderTimes.indices.contains(index), reminderTimes.count > 1 else { return }
+        reminderTimes.remove(at: index)
+        persistReminderPreferences()
+        syncReminderScheduling()
+    }
+
+    private func normalizedReminderTimes(from times: [ReminderClockTime]) -> [ReminderClockTime] {
+        let unique = Array(Set(times))
+        return unique.sorted { lhs, rhs in
+            lhs.minutesFromMidnight < rhs.minutesFromMidnight
         }
     }
 
     private func prepareExport() {
         exportURL = try? CSVExporter.makeFileURL(from: store.sessions)
+    }
+
+    private func dismissNoteEditor() {
+        isNoteEditorFocused = false
+        #if canImport(UIKit)
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        #endif
+    }
+}
+
+private struct AllHistoryView: View {
+    let allSessions: [KickSession]
+    let theme: AppTheme
+
+    @State private var displayedCount = 30
+    private let pageSize = 30
+
+    private var displayedSessions: [KickSession] {
+        Array(allSessions.prefix(displayedCount))
+    }
+
+    private var hasMore: Bool {
+        displayedCount < allSessions.count
+    }
+
+    var body: some View {
+        ZStack {
+            AnimatedThemeBackground(theme: theme)
+
+            if allSessions.isEmpty {
+                ContentUnavailableView("history.empty", systemImage: "clock.badge.questionmark")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(24)
+            } else {
+                List {
+                    ForEach(displayedSessions) { session in
+                        NavigationLink {
+                            SessionDetailView(session: session, theme: theme)
+                        } label: {
+                            HistoryRow(session: session, theme: theme)
+                                .padding(.vertical, 8)
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .listRowBackground(Color.clear)
+                        .onAppear {
+                            loadMoreIfNeeded(currentID: session.id)
+                        }
+                    }
+
+                    if hasMore {
+                        HStack {
+                            Spacer()
+                            ProgressView()
+                                .padding(.vertical, 12)
+                            Spacer()
+                        }
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                    }
+                }
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+            }
+        }
+        .navigationTitle("history.allTitle")
+        .navigationBarTitleDisplayMode(.inline)
+        .tint(theme.primary)
+    }
+
+    private func loadMoreIfNeeded(currentID: UUID) {
+        guard hasMore, currentID == displayedSessions.last?.id else { return }
+        displayedCount = min(displayedCount + pageSize, allSessions.count)
     }
 }
 
@@ -470,21 +820,24 @@ private struct ThemedConfirmationView: View {
                     state.primaryAction()
                 } label: {
                     Text(state.primaryTitle)
-                        .padding(.horizontal, 18)
+                        .frame(maxWidth: .infinity)
                 }
-                    .buttonStyle(PulseButtonStyle(tint: theme.primary))
+                .buttonStyle(PulseButtonStyle(tint: theme.primary))
 
                 Button {
                     state.secondaryAction()
                 } label: {
                     Text(state.secondaryTitle)
-                        .padding(.horizontal, 18)
+                        .frame(maxWidth: .infinity)
                 }
-                    .buttonStyle(SoftButtonStyle(theme: theme))
+                .buttonStyle(ConfirmationSecondaryButtonStyle(theme: theme))
 
                 if let destructiveTitle = state.destructiveTitle, let destructiveAction = state.destructiveAction {
-                    Button(destructiveTitle, role: .destructive, action: destructiveAction)
-                        .font(.subheadline.weight(.semibold))
+                    Button(role: .destructive, action: destructiveAction) {
+                        Text(destructiveTitle)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(ConfirmationDestructiveButtonStyle())
                 }
             }
             .padding(20)
@@ -506,6 +859,29 @@ private struct ThemeSwatch: View {
             Circle().fill(theme.background)
         }
         .frame(width: 54, height: 18)
+    }
+}
+
+private struct HistoryRow: View {
+    let session: KickSession
+    let theme: AppTheme
+
+    var body: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(session.dateText)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
+                Text(String(format: NSLocalizedString("history.summary", comment: "Session summary"), session.effectiveCount, session.duplicateCount))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            Text("\(session.effectiveCount)")
+                .font(.title3.weight(.bold))
+                .monospacedDigit()
+                .foregroundStyle(theme.primary)
+        }
     }
 }
 
@@ -543,6 +919,49 @@ private struct SoftButtonStyle: ButtonStyle {
             .background(theme.background.opacity(configuration.isPressed ? 0.62 : 0.92), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
             .foregroundStyle(theme.primary)
             .scaleEffect(configuration.isPressed ? 0.97 : 1)
+    }
+}
+
+private struct ConfirmationSecondaryButtonStyle: ButtonStyle {
+    let theme: AppTheme
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.subheadline.weight(.semibold))
+            .padding(.vertical, 11)
+            .frame(minHeight: 52)
+            .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .background(theme.background.opacity(configuration.isPressed ? 0.64 : 0.94), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .foregroundStyle(theme.primary)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .shadow(color: theme.primary.opacity(configuration.isPressed ? 0.07 : 0.13), radius: configuration.isPressed ? 4 : 7, y: configuration.isPressed ? 2 : 4)
+    }
+}
+
+private struct ConfirmationDestructiveButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.subheadline.weight(.semibold))
+            .padding(.vertical, 11)
+            .frame(minHeight: 52)
+            .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .background(Color.red.opacity(configuration.isPressed ? 0.16 : 0.11), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .foregroundStyle(.red)
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+    }
+}
+
+private struct KickPadButtonStyle: ButtonStyle {
+    let theme: AppTheme
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(.white)
+            .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(theme.primary.opacity(configuration.isPressed ? 0.88 : 1), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .scaleEffect(configuration.isPressed ? 0.98 : 1)
+            .shadow(color: theme.primary.opacity(configuration.isPressed ? 0.14 : 0.28), radius: configuration.isPressed ? 6 : 14, y: configuration.isPressed ? 3 : 8)
+            .animation(.spring(response: 0.22, dampingFraction: 0.68), value: configuration.isPressed)
     }
 }
 
@@ -610,30 +1029,92 @@ private struct SessionDetailView: View {
     let theme: AppTheme
 
     var body: some View {
-        List {
-            Section("details.title") {
-                LabeledContent("counter.effective", value: "\(session.effectiveCount)")
-                LabeledContent("counter.raw", value: "\(session.rawTapCount)")
-                LabeledContent("counter.duplicates", value: "\(session.duplicateCount)")
-                LabeledContent("details.targetDuration", value: session.targetDurationText)
-                LabeledContent("details.actualDuration", value: session.durationText)
-            }
+        ZStack {
+            AnimatedThemeBackground(theme: theme)
 
-            Section("details.tags") {
-                if session.tags.isEmpty {
-                    Text("details.noTags")
-                        .foregroundStyle(.secondary)
-                } else {
-                    Text(session.tags.map(\.localizedName).joined(separator: " · "))
+            ScrollView {
+                VStack(spacing: 14) {
+                    DetailSectionCard(title: "details.title", theme: theme) {
+                        ThemedDetailRow(title: "counter.effective", value: "\(session.effectiveCount)", theme: theme, emphasize: true)
+                        ThemedDetailRow(title: "counter.raw", value: "\(session.rawTapCount)", theme: theme)
+                        ThemedDetailRow(title: "counter.duplicates", value: "\(session.duplicateCount)", theme: theme)
+                        ThemedDetailRow(title: "details.targetDuration", value: session.targetDurationText, theme: theme)
+                        ThemedDetailRow(title: "details.actualDuration", value: session.durationText, theme: theme, secondaryEmphasis: true)
+                    }
+
+                    DetailSectionCard(title: "details.tags", theme: theme) {
+                        if session.tags.isEmpty {
+                            Text("details.noTags")
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Text(session.tags.map(\.localizedName).joined(separator: " · "))
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.primary)
+                        }
+                    }
+
+                    DetailSectionCard(title: "details.note", theme: theme) {
+                        Text(session.note.isEmpty ? NSLocalizedString("details.noNote", comment: "No note") : session.note)
+                            .foregroundStyle(session.note.isEmpty ? .secondary : .primary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
-            }
-
-            Section("details.note") {
-                Text(session.note.isEmpty ? NSLocalizedString("details.noNote", comment: "No note") : session.note)
-                    .foregroundStyle(session.note.isEmpty ? .secondary : .primary)
+                .padding(.horizontal, 18)
+                .padding(.top, 12)
+                .padding(.bottom, 24)
             }
         }
         .navigationTitle(session.dateText)
+        .navigationBarTitleDisplayMode(.inline)
         .tint(theme.primary)
+    }
+}
+
+private struct DetailSectionCard<Content: View>: View {
+    let title: LocalizedStringKey
+    let theme: AppTheme
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.headline)
+                .foregroundStyle(theme.primary)
+
+            content
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .background(theme.surface.opacity(0.76), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(theme.primary.opacity(0.08), lineWidth: 1)
+        )
+        .shadow(color: theme.primary.opacity(0.07), radius: 16, y: 8)
+    }
+}
+
+private struct ThemedDetailRow: View {
+    let title: LocalizedStringKey
+    let value: String
+    let theme: AppTheme
+    var emphasize = false
+    var secondaryEmphasis = false
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Text(title)
+                .foregroundStyle(.secondary)
+
+            Spacer()
+
+            Text(value)
+                .font(emphasize ? .headline.weight(.semibold) : .subheadline.weight(.semibold))
+                .monospacedDigit()
+                .foregroundStyle(
+                    emphasize ? theme.primary : (secondaryEmphasis ? theme.primary.opacity(0.82) : Color.primary)
+                )
+        }
     }
 }

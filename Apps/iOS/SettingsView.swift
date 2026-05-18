@@ -13,12 +13,14 @@ struct SettingsView: View {
             ZStack {
                 AnimatedThemeBackground(theme: themeController.selectedTheme)
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 18) {
                         themeSection
                         countingSection
                         privacySection
                     }
-                    .padding(18)
+                    .padding(.horizontal, 18)
+                    .padding(.top, 14)
+                    .padding(.bottom, 28)
                 }
             }
             .navigationTitle("settings.title")
@@ -34,8 +36,9 @@ struct SettingsView: View {
 
     private var themeSection: some View {
         SettingsCard(theme: themeController.selectedTheme) {
-            Text("settings.theme")
+            Label("settings.theme", systemImage: "paintpalette.fill")
                 .font(.headline)
+                .foregroundStyle(themeController.selectedTheme.primary)
 
             VStack(spacing: 10) {
                 ForEach(AppTheme.allCases) { theme in
@@ -67,8 +70,9 @@ struct SettingsView: View {
 
     private var countingSection: some View {
         SettingsCard(theme: themeController.selectedTheme) {
-            Text("settings.counting")
+            Label("settings.counting", systemImage: "slider.horizontal.3")
                 .font(.headline)
+                .foregroundStyle(themeController.selectedTheme.primary)
 
             VStack(alignment: .leading, spacing: 10) {
                 Text("settings.duration")
@@ -83,11 +87,11 @@ struct SettingsView: View {
                 }
             }
 
-            Toggle("settings.filterRepeats", isOn: $store.duplicateFilteringEnabled)
-                .tint(themeController.selectedTheme.primary)
-
-            Toggle("settings.autoStop", isOn: $store.autoStopWhenTargetReached)
-                .tint(themeController.selectedTheme.primary)
+            VStack(spacing: 8) {
+                SettingsToggleRow(title: "settings.filterRepeats", isOn: $store.duplicateFilteringEnabled, theme: themeController.selectedTheme)
+                SettingsToggleRow(title: "settings.autoStop", isOn: $store.autoStopWhenTargetReached, theme: themeController.selectedTheme)
+                SettingsToggleRow(title: "settings.haptics", isOn: $store.hapticFeedbackEnabled, theme: themeController.selectedTheme)
+            }
 
             VStack(alignment: .leading, spacing: 10) {
                 Text("settings.duplicateInterval")
@@ -101,13 +105,18 @@ struct SettingsView: View {
                         .disabled(!store.duplicateFilteringEnabled)
                     }
                 }
-                .opacity(store.duplicateFilteringEnabled ? 1 : 0.45)
+                .opacity(store.duplicateFilteringEnabled ? 1 : 0.42)
+                .animation(.easeOut(duration: 0.18), value: store.duplicateFilteringEnabled)
             }
         }
     }
 
     private var privacySection: some View {
         SettingsCard(theme: themeController.selectedTheme) {
+            Label("settings.title", systemImage: "lock.shield")
+                .font(.headline)
+                .foregroundStyle(themeController.selectedTheme.primary)
+
             Text("settings.privacy")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
@@ -126,6 +135,27 @@ private struct SettingsCard<Content: View>: View {
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(theme.surface.opacity(0.90), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(theme.primary.opacity(0.08), lineWidth: 1)
+        )
+        .shadow(color: theme.primary.opacity(0.06), radius: 14, y: 6)
+    }
+}
+
+private struct SettingsToggleRow: View {
+    let title: LocalizedStringKey
+    @Binding var isOn: Bool
+    let theme: AppTheme
+
+    var body: some View {
+        Toggle(title, isOn: $isOn)
+            .font(.subheadline.weight(.semibold))
+            .tint(theme.primary)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .frame(minHeight: 52)
+            .background(theme.background.opacity(0.72), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 }
 

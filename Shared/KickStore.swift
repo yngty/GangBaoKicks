@@ -33,6 +33,12 @@ final class KickStore: ObservableObject {
         }
     }
 
+    @Published var hapticFeedbackEnabled: Bool {
+        didSet {
+            defaults.set(hapticFeedbackEnabled, forKey: hapticFeedbackEnabledKey)
+        }
+    }
+
     private let defaults: UserDefaults
     private let sessionsKey = "gangbao.sessions"
     private let activeSessionKey = "gangbao.activeSession"
@@ -40,6 +46,7 @@ final class KickStore: ObservableObject {
     private let duplicateIntervalKey = "gangbao.duplicateInterval"
     private let duplicateFilteringKey = "gangbao.duplicateFilteringEnabled"
     private let autoStopWhenTargetReachedKey = "gangbao.autoStopWhenTargetReached"
+    private let hapticFeedbackEnabledKey = "gangbao.hapticFeedbackEnabled"
     private var latestSyncUpdate = Date.distantPast
 
     init(defaults: UserDefaults = .standard) {
@@ -48,6 +55,7 @@ final class KickStore: ObservableObject {
         duplicateInterval = defaults.object(forKey: duplicateIntervalKey) as? TimeInterval ?? 2 * 60
         duplicateFilteringEnabled = defaults.object(forKey: duplicateFilteringKey) as? Bool ?? true
         autoStopWhenTargetReached = defaults.object(forKey: autoStopWhenTargetReachedKey) as? Bool ?? true
+        hapticFeedbackEnabled = defaults.object(forKey: hapticFeedbackEnabledKey) as? Bool ?? false
         load()
     }
 

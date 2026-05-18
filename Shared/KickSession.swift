@@ -91,7 +91,7 @@ struct KickSession: Identifiable, Codable, Hashable {
     }
 
     func duration(at date: Date) -> TimeInterval {
-        (endedAt ?? date).timeIntervalSince(startedAt)
+        max((endedAt ?? date).timeIntervalSince(startedAt), 0)
     }
 
     var actualDuration: TimeInterval {
@@ -120,7 +120,9 @@ struct KickSession: Identifiable, Codable, Hashable {
 
     func progress(at date: Date) -> Double {
         guard targetDuration > 0 else { return 0 }
-        return min(duration(at: date) / targetDuration, 1)
+        let ratio = duration(at: date) / targetDuration
+        guard ratio.isFinite else { return 0 }
+        return min(max(ratio, 0), 1)
     }
 }
 

@@ -1,0 +1,532 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		2304AF5B09BAB0F9739448BA /* WatchSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51379570F8DCD0D87B115A6 /* WatchSyncService.swift */; };
+		2767107B740E22CE7C4EBCEB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EDDC99233146E3760629DF47 /* Assets.xcassets */; };
+		2BE9518B5EC93F39E9C9DF39 /* KickStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FDB6A1F51CA168CFCDE5E7E /* KickStore.swift */; };
+		2DDA1A9C6F904CCBF039036C /* AnimatedThemeBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F869E50B0F41B13A4B682E5 /* AnimatedThemeBackground.swift */; };
+		3410064DC3EEAE0FD0B0C028 /* CSVExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E21106C453F1807E1CC11493 /* CSVExporter.swift */; };
+		3EF8357D7C84D6A19C4F4BE5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28EF10620B0332E4455235B /* ContentView.swift */; };
+		5E98EE846C65361326B72CBA /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 25F8448692FCAA69F0F870B5 /* Localizable.strings */; };
+		62C2B8AD40E4EAB73A9B4978 /* GangBaoKicksApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89B22B15A6DF3AB1119B8E2D /* GangBaoKicksApp.swift */; };
+		6FCFA4D4E24F608DBF0DC2A2 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 25F8448692FCAA69F0F870B5 /* Localizable.strings */; };
+		735F33FB52208A7CC4ED99C2 /* KickSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BDFAD44C67EED1244082B52 /* KickSession.swift */; };
+		74B9D6F0B6E3418B81EAB020 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5C8CC679E5F48B9CFAC174F /* AppTheme.swift */; };
+		784ECC4EB7B07865A1E57558 /* KickSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1BDFAD44C67EED1244082B52 /* KickSession.swift */; };
+		7CFCC97EE5E2E1763EB124CE /* ReminderScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1488CFAF4111BF90221CB0 /* ReminderScheduler.swift */; };
+		841664BB1373567B96AE0B80 /* KickStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FDB6A1F51CA168CFCDE5E7E /* KickStore.swift */; };
+		882C7E6DB8A6B684B021276D /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F9C9122CA7156EDF9540B6B /* DesignTokens.swift */; };
+		893D6A919A384ACE0F85AEDB /* WatchContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9613A90A41A848369AFF7EF0 /* WatchContentView.swift */; };
+		91B134ADB0F131F1D603762F /* PulseButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 720841F19198241A59A72428 /* PulseButtonStyle.swift */; };
+		97FD8FC0BC5CA568EDA30D18 /* PulseButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 720841F19198241A59A72428 /* PulseButtonStyle.swift */; };
+		9DD9AB9F9BB547B2B00ADC3B /* CSVExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = E21106C453F1807E1CC11493 /* CSVExporter.swift */; };
+		9E9D309775BF26734BDFE3DF /* GangBaoKicks Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = D2794E2DA960FD9EA2C82316 /* GangBaoKicks Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		AB73FBB482141C9D4FF8D8E9 /* AnimatedThemeBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F869E50B0F41B13A4B682E5 /* AnimatedThemeBackground.swift */; };
+		B5048590A9B72A7E9F8B7A25 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E63C4AD9B56A9FB566A8C124 /* SettingsView.swift */; };
+		B7BE9A00D6411D0AECD8BE63 /* GangBaoKicksWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D7B2B8C678A6680A97F5DF9 /* GangBaoKicksWatchApp.swift */; };
+		BA60F71C144C99D445F4A6D4 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A1BE23A0B3BDA477540BE3A /* Formatters.swift */; };
+		C69E4A85B61CC8D2E43BF8FB /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A1BE23A0B3BDA477540BE3A /* Formatters.swift */; };
+		D51094ED8CFDAF13CAE9EDA2 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F9C9122CA7156EDF9540B6B /* DesignTokens.swift */; };
+		D99DCDA79040180BACBBC41D /* ReminderScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B1488CFAF4111BF90221CB0 /* ReminderScheduler.swift */; };
+		DFFDBAB3F64A5E65277995AF /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5C8CC679E5F48B9CFAC174F /* AppTheme.swift */; };
+		E5164F709D109C60F3463601 /* WatchSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D51379570F8DCD0D87B115A6 /* WatchSyncService.swift */; };
+		F71C0165A72D26A74DC9757C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FBC778F52355A7AC9F7AED5B /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1906DC61F5C8DB1C54EA18CA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 953367C8A885EC33CD85D558 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0D2B1A16E3AAAAF62E6C5940;
+			remoteInfo = "GangBaoKicks Watch App";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		DC4E93CC872E96A27F68F27F /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				9E9D309775BF26734BDFE3DF /* GangBaoKicks Watch App.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		152D9BE674019ACF36459B4A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		17FF67FBD93B15DCA9265915 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		1BDFAD44C67EED1244082B52 /* KickSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KickSession.swift; sourceTree = "<group>"; };
+		2B1488CFAF4111BF90221CB0 /* ReminderScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderScheduler.swift; sourceTree = "<group>"; };
+		2F9C9122CA7156EDF9540B6B /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
+		3913DAF6C2F43BC83B82495A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		4A1BE23A0B3BDA477540BE3A /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Formatters.swift; sourceTree = "<group>"; };
+		5D7B2B8C678A6680A97F5DF9 /* GangBaoKicksWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GangBaoKicksWatchApp.swift; sourceTree = "<group>"; };
+		720841F19198241A59A72428 /* PulseButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PulseButtonStyle.swift; sourceTree = "<group>"; };
+		89B22B15A6DF3AB1119B8E2D /* GangBaoKicksApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GangBaoKicksApp.swift; sourceTree = "<group>"; };
+		8F869E50B0F41B13A4B682E5 /* AnimatedThemeBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedThemeBackground.swift; sourceTree = "<group>"; };
+		8FDB6A1F51CA168CFCDE5E7E /* KickStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KickStore.swift; sourceTree = "<group>"; };
+		9613A90A41A848369AFF7EF0 /* WatchContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchContentView.swift; sourceTree = "<group>"; };
+		A5C8CC679E5F48B9CFAC174F /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
+		BB8F074A78A97B42BFC66EF3 /* GangBaoKicks.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GangBaoKicks.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C6CDA546347B49BF88C77CE0 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		D2794E2DA960FD9EA2C82316 /* GangBaoKicks Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "GangBaoKicks Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D51379570F8DCD0D87B115A6 /* WatchSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSyncService.swift; sourceTree = "<group>"; };
+		E21106C453F1807E1CC11493 /* CSVExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVExporter.swift; sourceTree = "<group>"; };
+		E28EF10620B0332E4455235B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		E63C4AD9B56A9FB566A8C124 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		EDDC99233146E3760629DF47 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		FBC778F52355A7AC9F7AED5B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		77211914C674DEEF3227D7DE /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				8F869E50B0F41B13A4B682E5 /* AnimatedThemeBackground.swift */,
+				A5C8CC679E5F48B9CFAC174F /* AppTheme.swift */,
+				E21106C453F1807E1CC11493 /* CSVExporter.swift */,
+				2F9C9122CA7156EDF9540B6B /* DesignTokens.swift */,
+				4A1BE23A0B3BDA477540BE3A /* Formatters.swift */,
+				1BDFAD44C67EED1244082B52 /* KickSession.swift */,
+				8FDB6A1F51CA168CFCDE5E7E /* KickStore.swift */,
+				720841F19198241A59A72428 /* PulseButtonStyle.swift */,
+				2B1488CFAF4111BF90221CB0 /* ReminderScheduler.swift */,
+				D51379570F8DCD0D87B115A6 /* WatchSyncService.swift */,
+				25F8448692FCAA69F0F870B5 /* Localizable.strings */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		AE265D9D9F3846DEB78E1D25 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D2794E2DA960FD9EA2C82316 /* GangBaoKicks Watch App.app */,
+				BB8F074A78A97B42BFC66EF3 /* GangBaoKicks.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B6DD74E2496B49F2D525B4B9 = {
+			isa = PBXGroup;
+			children = (
+				C40C7C4B11E14ECF67DBE298 /* iOS */,
+				77211914C674DEEF3227D7DE /* Shared */,
+				C51AF914621FCA7CE59D1735 /* Watch */,
+				AE265D9D9F3846DEB78E1D25 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		C40C7C4B11E14ECF67DBE298 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				EDDC99233146E3760629DF47 /* Assets.xcassets */,
+				E28EF10620B0332E4455235B /* ContentView.swift */,
+				89B22B15A6DF3AB1119B8E2D /* GangBaoKicksApp.swift */,
+				3913DAF6C2F43BC83B82495A /* Info.plist */,
+				E63C4AD9B56A9FB566A8C124 /* SettingsView.swift */,
+			);
+			name = iOS;
+			path = Apps/iOS;
+			sourceTree = "<group>";
+		};
+		C51AF914621FCA7CE59D1735 /* Watch */ = {
+			isa = PBXGroup;
+			children = (
+				FBC778F52355A7AC9F7AED5B /* Assets.xcassets */,
+				5D7B2B8C678A6680A97F5DF9 /* GangBaoKicksWatchApp.swift */,
+				152D9BE674019ACF36459B4A /* Info.plist */,
+				9613A90A41A848369AFF7EF0 /* WatchContentView.swift */,
+			);
+			name = Watch;
+			path = Apps/Watch;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0D2B1A16E3AAAAF62E6C5940 /* GangBaoKicks Watch App */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AB4358AD6D6F4B02DF1A6821 /* Build configuration list for PBXNativeTarget "GangBaoKicks Watch App" */;
+			buildPhases = (
+				8044E4E9EFB04834CEB87D5A /* Sources */,
+				7DCC610758D51FDD42FFB180 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "GangBaoKicks Watch App";
+			packageProductDependencies = (
+			);
+			productName = "GangBaoKicks Watch App";
+			productReference = D2794E2DA960FD9EA2C82316 /* GangBaoKicks Watch App.app */;
+			productType = "com.apple.product-type.application";
+		};
+		224CD38AE957479ADC69DB58 /* GangBaoKicks */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2CD57B52C0650FFDAFDFE086 /* Build configuration list for PBXNativeTarget "GangBaoKicks" */;
+			buildPhases = (
+				435F8AAA71B0C9B8D30FE3CE /* Sources */,
+				90E3819CA16846643622144D /* Resources */,
+				DC4E93CC872E96A27F68F27F /* Embed Watch Content */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				385CE4CD25D36C3C5F673E1D /* PBXTargetDependency */,
+			);
+			name = GangBaoKicks;
+			packageProductDependencies = (
+			);
+			productName = GangBaoKicks;
+			productReference = BB8F074A78A97B42BFC66EF3 /* GangBaoKicks.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		953367C8A885EC33CD85D558 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+			};
+			buildConfigurationList = BD0771526B61FD3FB761C271 /* Build configuration list for PBXProject "GangBaoKicks" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+				"zh-Hans",
+			);
+			mainGroup = B6DD74E2496B49F2D525B4B9;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = AE265D9D9F3846DEB78E1D25 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				224CD38AE957479ADC69DB58 /* GangBaoKicks */,
+				0D2B1A16E3AAAAF62E6C5940 /* GangBaoKicks Watch App */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7DCC610758D51FDD42FFB180 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F71C0165A72D26A74DC9757C /* Assets.xcassets in Resources */,
+				6FCFA4D4E24F608DBF0DC2A2 /* Localizable.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		90E3819CA16846643622144D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2767107B740E22CE7C4EBCEB /* Assets.xcassets in Resources */,
+				5E98EE846C65361326B72CBA /* Localizable.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		435F8AAA71B0C9B8D30FE3CE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2DDA1A9C6F904CCBF039036C /* AnimatedThemeBackground.swift in Sources */,
+				DFFDBAB3F64A5E65277995AF /* AppTheme.swift in Sources */,
+				3410064DC3EEAE0FD0B0C028 /* CSVExporter.swift in Sources */,
+				3EF8357D7C84D6A19C4F4BE5 /* ContentView.swift in Sources */,
+				882C7E6DB8A6B684B021276D /* DesignTokens.swift in Sources */,
+				BA60F71C144C99D445F4A6D4 /* Formatters.swift in Sources */,
+				62C2B8AD40E4EAB73A9B4978 /* GangBaoKicksApp.swift in Sources */,
+				784ECC4EB7B07865A1E57558 /* KickSession.swift in Sources */,
+				2BE9518B5EC93F39E9C9DF39 /* KickStore.swift in Sources */,
+				91B134ADB0F131F1D603762F /* PulseButtonStyle.swift in Sources */,
+				7CFCC97EE5E2E1763EB124CE /* ReminderScheduler.swift in Sources */,
+				B5048590A9B72A7E9F8B7A25 /* SettingsView.swift in Sources */,
+				E5164F709D109C60F3463601 /* WatchSyncService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8044E4E9EFB04834CEB87D5A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AB73FBB482141C9D4FF8D8E9 /* AnimatedThemeBackground.swift in Sources */,
+				74B9D6F0B6E3418B81EAB020 /* AppTheme.swift in Sources */,
+				9DD9AB9F9BB547B2B00ADC3B /* CSVExporter.swift in Sources */,
+				D51094ED8CFDAF13CAE9EDA2 /* DesignTokens.swift in Sources */,
+				C69E4A85B61CC8D2E43BF8FB /* Formatters.swift in Sources */,
+				B7BE9A00D6411D0AECD8BE63 /* GangBaoKicksWatchApp.swift in Sources */,
+				735F33FB52208A7CC4ED99C2 /* KickSession.swift in Sources */,
+				841664BB1373567B96AE0B80 /* KickStore.swift in Sources */,
+				97FD8FC0BC5CA568EDA30D18 /* PulseButtonStyle.swift in Sources */,
+				D99DCDA79040180BACBBC41D /* ReminderScheduler.swift in Sources */,
+				893D6A919A384ACE0F85AEDB /* WatchContentView.swift in Sources */,
+				2304AF5B09BAB0F9739448BA /* WatchSyncService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		385CE4CD25D36C3C5F673E1D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0D2B1A16E3AAAAF62E6C5940 /* GangBaoKicks Watch App */;
+			targetProxy = 1906DC61F5C8DB1C54EA18CA /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		25F8448692FCAA69F0F870B5 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				17FF67FBD93B15DCA9265915 /* en */,
+				C6CDA546347B49BF88C77CE0 /* zh-Hans */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		3793B9AABF4FE21E7AF83357 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = 89GZYEZ47R;
+				INFOPLIST_FILE = Apps/Watch/Info.plist;
+				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "GangBaoKicks can remind you when it is time to count kicks.";
+				PRODUCT_BUNDLE_IDENTIFIER = com.gangbao.GangBaoKicks.watchkitapp;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+			};
+			name = Debug;
+		};
+		6D8527C3C99F32DC64EA63D5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = 89GZYEZ47R;
+				INFOPLIST_FILE = Apps/iOS/Info.plist;
+				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "GangBaoKicks can remind you when it is time to count kicks.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.gangbao.GangBaoKicks;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		7C7CD5795FFBD14CFE31B712 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				DEVELOPMENT_TEAM = 89GZYEZ47R;
+				INFOPLIST_FILE = Apps/Watch/Info.plist;
+				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "GangBaoKicks can remind you when it is time to count kicks.";
+				PRODUCT_BUNDLE_IDENTIFIER = com.gangbao.GangBaoKicks.watchkitapp;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+			};
+			name = Release;
+		};
+		8E148DBE296AAC05491006D4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = 89GZYEZ47R;
+				INFOPLIST_FILE = Apps/iOS/Info.plist;
+				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "GangBaoKicks can remind you when it is time to count kicks.";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.gangbao.GangBaoKicks;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		8E5A0094281ABE73985FB8F4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
+		B13673403D555F463CB94C76 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2CD57B52C0650FFDAFDFE086 /* Build configuration list for PBXNativeTarget "GangBaoKicks" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8E148DBE296AAC05491006D4 /* Debug */,
+				6D8527C3C99F32DC64EA63D5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		AB4358AD6D6F4B02DF1A6821 /* Build configuration list for PBXNativeTarget "GangBaoKicks Watch App" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3793B9AABF4FE21E7AF83357 /* Debug */,
+				7C7CD5795FFBD14CFE31B712 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		BD0771526B61FD3FB761C271 /* Build configuration list for PBXProject "GangBaoKicks" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B13673403D555F463CB94C76 /* Debug */,
+				8E5A0094281ABE73985FB8F4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 953367C8A885EC33CD85D558 /* Project object */;
+}

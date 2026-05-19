@@ -13,6 +13,9 @@ final class WatchSyncService: NSObject, ObservableObject {
         #if canImport(WatchConnectivity)
         guard WCSession.isSupported() else { return }
         let session = WCSession.default
+        #if os(iOS)
+        guard session.isPaired, session.isWatchAppInstalled else { return }
+        #endif
         session.delegate = self
         session.activate()
         #endif
@@ -21,6 +24,9 @@ final class WatchSyncService: NSObject, ObservableObject {
     func publish(_ payload: KickSyncPayload) {
         #if canImport(WatchConnectivity)
         guard WCSession.isSupported(), let data = try? JSONEncoder().encode(payload) else { return }
+        #if os(iOS)
+        guard WCSession.default.isPaired, WCSession.default.isWatchAppInstalled else { return }
+        #endif
         let context: [String: Any] = ["payload": data]
         try? WCSession.default.updateApplicationContext(context)
 

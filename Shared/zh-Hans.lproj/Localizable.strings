@@ -43,6 +43,7 @@
 "details.actualDuration" = "实际时长";
 "settings.title" = "设置";
 "settings.theme" = "主题";
+"settings.appearance" = "外观";
 "settings.counting" = "计数";
 "settings.duration" = "观察时长";
 "settings.duplicateInterval" = "重复间隔";
@@ -63,3 +64,6 @@
 "theme.peach" = "温柔蜜桃";
 "theme.sky" = "天空小憩";
 "theme.lavender" = "轻薰衣草";
+"appearance.system" = "跟随系统";
+"appearance.light" = "浅色";
+"appearance.dark" = "深色";

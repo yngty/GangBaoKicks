@@ -11,6 +11,7 @@ struct ContentView: View {
     @State private var reminderTimes: [ReminderClockTime] = [ReminderClockTime.defaultEvening]
     @State private var reminderEnabled = false
     @State private var hasLoadedReminderPreferences = false
+    @State private var editingReminderTimeIndex: Int?
     @State private var exportURL: URL?
     @State private var toast: ToastState?
     @State private var confirmation: ConfirmationState?
@@ -18,9 +19,9 @@ struct ContentView: View {
     @State private var timeReachedSessionID: UUID?
     @State private var currentDate = Date.now
     @State private var kickPadTapBounce = false
-    @State private var kickPadRipple = false
+    @State private var kickPadDuplicateShake = false
     @State private var kickPadRippleCenter: CGPoint = .zero
-    @State private var kickPadTouchTracking = false
+    @State private var kickPadRipples: [KickPadRipple] = []
     @State private var kickCountPop = false
     @FocusState private var isNoteEditorFocused: Bool
 
@@ -29,6 +30,15 @@ struct ContentView: View {
     private let maxReminderTimes = 5
 
     private var theme: AppTheme { themeController.selectedTheme }
+
+    private var reminderTimePickerPresented: Binding<Bool> {
+        Binding(
+            get: { editingReminderTimeIndex != nil },
+            set: { isPresented in
+                if !isPresented { editingReminderTimeIndex = nil }
+            }
+        )
+    }
 
     var body: some View {
         NavigationStack {
@@ -57,18 +67,23 @@ struct ContentView: View {
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar(.hidden, for: .navigationBar)
-            .toolbar {
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button("settings.done") {
-                        dismissNoteEditor()
-                    }
-                }
-            }
             .sheet(isPresented: $showingSettings) {
                 SettingsView()
                     .environmentObject(store)
                     .environmentObject(themeController)
+            }
+            .sheet(isPresented: reminderTimePickerPresented) {
+                if let index = editingReminderTimeIndex, reminderTimes.indices.contains(index) {
+                    ReminderTimePickerSheet(
+                        selection: reminderTimeBinding(at: index),
+                        theme: theme,
+                        onDone: {
+                            editingReminderTimeIndex = nil
+                        }
+                    )
+                    .presentationDetents([.height(280)])
+                    .presentationDragIndicator(.visible)
+                }
             }
             .overlay(alignment: .bottom) {
                 if let toast {
@@ -86,17 +101,29 @@ struct ContentView: View {
             }
             .animation(.spring(response: 0.26, dampingFraction: 0.82), value: toast)
             .animation(.spring(response: 0.26, dampingFraction: 0.86), value: confirmation)
+            .preferredColorScheme(themeController.colorSchemePreference.preferredColorScheme)
             .onAppear {
                 prepareExport()
                 loadReminderPreferencesIfNeeded()
+                updateIdleTimerLock(shouldDisable: store.activeSession != nil)
+            }
+            .onDisappear {
+                updateIdleTimerLock(shouldDisable: false)
             }
             .onChange(of: store.sessions) { _, _ in prepareExport() }
+            .onChange(of: store.activeSession?.id) { _, _ in
+                updateIdleTimerLock(shouldDisable: store.activeSession != nil)
+            }
             .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { date in
                 refreshTimeline(at: date)
             }
             .onChange(of: scenePhase) { _, phase in
-                guard phase == .active else { return }
-                refreshTimeline(at: .now)
+                if phase == .active {
+                    refreshTimeline(at: .now)
+                    updateIdleTimerLock(shouldDisable: store.activeSession != nil)
+                } else {
+                    updateIdleTimerLock(shouldDisable: false)
+                }
             }
         }
     }
@@ -129,8 +156,7 @@ struct ContentView: View {
             .foregroundStyle(.primary)
             .padding(.horizontal, 18)
             .frame(height: 52)
-            .background(.thinMaterial, in: Capsule())
-            .background(theme.surface.opacity(0.72), in: Capsule())
+            .background(theme.surface.opacity(0.84), in: Capsule())
             .overlay(
                 Capsule()
                     .stroke(theme.primary.opacity(0.08), lineWidth: 1)
@@ -172,8 +198,7 @@ struct ContentView: View {
             }
         }
         .padding(18)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .background(theme.surface.opacity(0.82), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .background(theme.surface.opacity(0.88), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
             .stroke(theme.primary.opacity(0.14), lineWidth: 1)
@@ -211,17 +236,16 @@ struct ContentView: View {
 
             Button {
                 dismissNoteEditor()
-                triggerKickPadTapEffects()
-                recordKick()
+                let tapDate = Date.now
+                refreshTimeline(at: tapDate)
+                let result = recordKick(at: tapDate)
+                triggerKickPadTapEffects(isDuplicate: result == .duplicate)
             } label: {
                 GeometryReader { geometry in
                     ZStack {
-                        Circle()
-                            .fill(.white.opacity(0.24))
-                            .frame(width: 40, height: 40)
-                            .position(kickPadRippleCenter == .zero ? CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2) : kickPadRippleCenter)
-                            .scaleEffect(kickPadRipple ? 5.0 : 0.1)
-                            .opacity(kickPadRipple ? 0 : 0.38)
+                        ForEach(kickPadRipples) { ripple in
+                            KickPadRippleView(ripple: ripple)
+                        }
 
                         VStack(spacing: 8) {
                             Image(systemName: "plus.circle.fill")
@@ -231,6 +255,7 @@ struct ContentView: View {
                                 .font(.title3.weight(.bold))
                         }
                     }
+                    .frame(width: geometry.size.width, height: geometry.size.height)
                     .onAppear {
                         if kickPadRippleCenter == .zero {
                             kickPadRippleCenter = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2)
@@ -241,16 +266,16 @@ struct ContentView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
             .scaleEffect(kickPadTapBounce ? 0.94 : 1)
+            .offset(x: kickPadDuplicateShake ? -5 : 0)
             .buttonStyle(KickPadButtonStyle(theme: theme))
             .simultaneousGesture(
                 DragGesture(minimumDistance: 0, coordinateSpace: .local)
                     .onChanged { value in
-                        guard !kickPadTouchTracking else { return }
-                        kickPadTouchTracking = true
-                        kickPadRippleCenter = value.location
+                        kickPadRippleCenter = value.startLocation
+                        currentDate = .now
                     }
-                    .onEnded { _ in
-                        kickPadTouchTracking = false
+                    .onEnded { value in
+                        kickPadRippleCenter = value.startLocation
                     }
             )
 
@@ -351,9 +376,12 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("reminder.title")
                 .font(.headline)
+                .foregroundStyle(theme.primary)
 
             Toggle("reminder.daily", isOn: $reminderEnabled)
+                .font(.subheadline.weight(.semibold))
                 .tint(theme.primary)
+                .foregroundStyle(.primary)
                 .onChange(of: reminderEnabled) { _, _ in
                     persistReminderPreferences()
                     syncReminderScheduling()
@@ -363,13 +391,18 @@ struct ContentView: View {
                 VStack(spacing: 10) {
                     ForEach(reminderTimes.indices, id: \.self) { index in
                         HStack(spacing: 10) {
-                            DatePicker(
-                                "reminder.time",
-                                selection: reminderTimeBinding(at: index),
-                                displayedComponents: .hourAndMinute
-                            )
-                            .labelsHidden()
-                            .frame(maxWidth: .infinity, alignment: .leading)
+                            Button {
+                                editingReminderTimeIndex = index
+                            } label: {
+                                Text(formattedReminderTime(reminderTimes[index]))
+                                    .font(.headline.weight(.semibold))
+                                    .monospacedDigit()
+                                    .foregroundStyle(theme.primary)
+                                    .frame(maxWidth: .infinity, minHeight: 36, alignment: .leading)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(Text("reminder.time"))
+                            .accessibilityValue(Text(formattedReminderTime(reminderTimes[index])))
 
                             Button {
                                 removeReminderTime(at: index)
@@ -378,13 +411,17 @@ struct ContentView: View {
                                     .font(.title3)
                             }
                             .buttonStyle(.plain)
-                            .foregroundStyle(reminderTimes.count > 1 ? Color.red : Color.secondary)
+                            .foregroundStyle(reminderTimes.count > 1 ? theme.primary : Color.secondary)
                             .disabled(reminderTimes.count <= 1)
                             .accessibilityLabel(Text("reminder.removeTime"))
                         }
                         .padding(.horizontal, 12)
                         .padding(.vertical, 8)
                         .background(theme.background.opacity(0.72), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .stroke(theme.primary.opacity(0.08), lineWidth: 1)
+                        )
                     }
 
                     Button {
@@ -398,14 +435,17 @@ struct ContentView: View {
                     .buttonStyle(.plain)
                     .foregroundStyle(theme.primary)
                     .background(theme.background.opacity(0.62), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .stroke(theme.primary.opacity(0.10), lineWidth: 1)
+                    )
                     .disabled(reminderTimes.count >= maxReminderTimes)
                     .opacity(reminderTimes.count >= maxReminderTimes ? 0.45 : 1)
                 }
             }
         }
         .padding(16)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .background(theme.surface.opacity(0.76), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .background(theme.surface.opacity(0.84), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .stroke(theme.primary.opacity(0.08), lineWidth: 1)
@@ -452,16 +492,15 @@ struct ContentView: View {
             }
         }
         .padding(16)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .background(theme.surface.opacity(0.76), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .background(theme.surface.opacity(0.84), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .stroke(theme.primary.opacity(0.08), lineWidth: 1)
         )
     }
 
-    private func recordKick() {
-        let result = store.addKick()
+    private func recordKick(at date: Date = .now) -> KickRecordResult {
+        let result = store.addKick(at: date)
         syncService.publish(store.syncPayload)
 
         if result == .counted {
@@ -472,11 +511,15 @@ struct ContentView: View {
             triggerDuplicateKickFeedback()
             showToast(NSLocalizedString("counter.duplicateToast", comment: "Duplicate toast"))
         }
+
+        return result
     }
 
-    private func triggerKickPadTapEffects() {
-        triggerKickPadTapBounce()
-        triggerKickPadRipple()
+    private func triggerKickPadTapEffects(isDuplicate: Bool) {
+        if !isDuplicate {
+            triggerKickPadTapBounce()
+        }
+        triggerKickPadRipple(isDuplicate: isDuplicate)
     }
 
     private func triggerKickPadTapBounce() {
@@ -492,18 +535,36 @@ struct ContentView: View {
         }
     }
 
-    private func triggerKickPadRipple() {
-        kickPadRipple = false
+    private func triggerKickPadRipple(isDuplicate: Bool) {
+        let ripple = KickPadRipple(center: kickPadRippleCenter, isDuplicate: isDuplicate)
+        kickPadRipples.append(ripple)
 
         Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(10))
-            withAnimation(.easeOut(duration: 0.45)) {
-                kickPadRipple = true
+            try? await Task.sleep(for: .milliseconds(680))
+            kickPadRipples.removeAll { $0.id == ripple.id }
+        }
+    }
+
+    private func triggerDuplicateKickFeedback() {
+        Task { @MainActor in
+            for offsetLeft in [true, false, true, false] {
+                withAnimation(.easeInOut(duration: 0.055)) {
+                    kickPadDuplicateShake = offsetLeft
+                }
+                try? await Task.sleep(for: .seconds(0.055))
             }
 
-            try? await Task.sleep(for: .seconds(0.45))
-            kickPadRipple = false
+            withAnimation(.easeOut(duration: 0.06)) {
+                kickPadDuplicateShake = false
+            }
         }
+
+        guard store.hapticFeedbackEnabled else { return }
+
+        #if canImport(UIKit)
+        let generator = UINotificationFeedbackGenerator()
+        generator.notificationOccurred(.warning)
+        #endif
     }
 
     private func triggerSuccessfulKickFeedback() {
@@ -523,15 +584,6 @@ struct ContentView: View {
         #if canImport(UIKit)
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred(intensity: 0.95)
-        #endif
-    }
-
-    private func triggerDuplicateKickFeedback() {
-        guard store.hapticFeedbackEnabled else { return }
-
-        #if canImport(UIKit)
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.warning)
         #endif
     }
 
@@ -595,6 +647,12 @@ struct ContentView: View {
         handleCountdownTick(at: date)
     }
 
+    private func updateIdleTimerLock(shouldDisable: Bool) {
+        #if canImport(UIKit)
+        UIApplication.shared.isIdleTimerDisabled = shouldDisable
+        #endif
+    }
+
     private func showToast(_ message: String) {
         let state = ToastState(message: message)
         toast = state
@@ -651,6 +709,10 @@ struct ContentView: View {
                 updateReminderTime(at: index, to: newDate)
             }
         )
+    }
+
+    private func formattedReminderTime(_ time: ReminderClockTime) -> String {
+        String(format: "%02d:%02d", time.hour, time.minute)
     }
 
     private func updateReminderTime(at index: Int, to date: Date) {
@@ -790,6 +852,78 @@ private struct ConfirmationState: Identifiable, Equatable {
 
     static func == (lhs: ConfirmationState, rhs: ConfirmationState) -> Bool {
         lhs.id == rhs.id
+    }
+}
+
+private struct KickPadRipple: Identifiable, Equatable {
+    let id = UUID()
+    let center: CGPoint
+    let isDuplicate: Bool
+}
+
+private struct KickPadRippleView: View {
+    let ripple: KickPadRipple
+    @State private var expanded = false
+
+    private var tint: Color {
+        ripple.isDuplicate ? Color.orange : Color.white
+    }
+
+    var body: some View {
+        Circle()
+            .fill(
+                RadialGradient(
+                    colors: [
+                        tint.opacity(ripple.isDuplicate ? 0.34 : 0.30),
+                        tint.opacity(ripple.isDuplicate ? 0.18 : 0.15),
+                        tint.opacity(0)
+                    ],
+                    center: .center,
+                    startRadius: 2,
+                    endRadius: 120
+                )
+            )
+            .frame(width: 44, height: 44)
+            .scaleEffect(expanded ? 7.2 : 0.08)
+            .opacity(expanded ? 0 : 1)
+        .position(ripple.center)
+        .allowsHitTesting(false)
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.58)) {
+                expanded = true
+            }
+        }
+    }
+}
+
+private struct ReminderTimePickerSheet: View {
+    @Binding var selection: Date
+    let theme: AppTheme
+    let onDone: () -> Void
+
+    var body: some View {
+        VStack(spacing: 12) {
+            HStack {
+                Text("reminder.time")
+                    .font(.headline)
+                    .foregroundStyle(theme.primary)
+
+                Spacer()
+
+                Button("settings.done", action: onDone)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(theme.primary)
+            }
+            .padding(.horizontal, 18)
+            .padding(.top, 16)
+
+            DatePicker("reminder.time", selection: $selection, displayedComponents: .hourAndMinute)
+                .datePickerStyle(.wheel)
+                .labelsHidden()
+                .tint(theme.primary)
+                .frame(maxWidth: .infinity)
+        }
+        .background(theme.surface.opacity(0.96))
     }
 }
 
@@ -1094,8 +1228,7 @@ private struct DetailSectionCard<Content: View>: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .background(theme.surface.opacity(0.76), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .background(theme.surface.opacity(0.84), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .stroke(theme.primary.opacity(0.08), lineWidth: 1)

@@ -12,6 +12,7 @@ struct GangBaoKicksApp: App {
                 .environmentObject(store)
                 .environmentObject(syncService)
                 .environmentObject(themeController)
+                .preferredColorScheme(themeController.colorSchemePreference.preferredColorScheme)
                 .onAppear {
                     syncService.configure(store: store)
                 }

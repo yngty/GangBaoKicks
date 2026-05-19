@@ -5,7 +5,7 @@ struct SettingsView: View {
     @EnvironmentObject private var themeController: ThemeController
     @Environment(\.dismiss) private var dismiss
 
-    private let durationOptions: [TimeInterval] = [30, 45, 60, 90, 120].map { TimeInterval($0 * 60) }
+    private let durationOptions: [TimeInterval] = [30, 45, 60, 90].map { TimeInterval($0 * 60) }
     private let duplicateOptions: [TimeInterval] = [60, 120, 300, 600]
 
     var body: some View {
@@ -25,6 +25,7 @@ struct SettingsView: View {
             }
             .navigationTitle("settings.title")
             .navigationBarTitleDisplayMode(.inline)
+            .preferredColorScheme(themeController.colorSchemePreference.preferredColorScheme)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("settings.done") { dismiss() }
@@ -39,6 +40,20 @@ struct SettingsView: View {
             Label("settings.theme", systemImage: "paintpalette.fill")
                 .font(.headline)
                 .foregroundStyle(themeController.selectedTheme.primary)
+
+            VStack(alignment: .leading, spacing: 10) {
+                Text("settings.appearance")
+                    .font(.subheadline.weight(.semibold))
+
+                WrappedChips {
+                    ForEach(ThemeColorSchemePreference.allCases) { preference in
+                        Button(preference.localizedName) {
+                            themeController.colorSchemePreference = preference
+                        }
+                        .buttonStyle(SettingsChipStyle(isSelected: themeController.colorSchemePreference == preference, theme: themeController.selectedTheme))
+                    }
+                }
+            }
 
             VStack(spacing: 10) {
                 ForEach(AppTheme.allCases) { theme in
@@ -181,9 +196,9 @@ private struct SettingsChipStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.subheadline.weight(.semibold))
-            .padding(.horizontal, 13)
-            .padding(.vertical, 9)
-            .frame(minHeight: 44)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .frame(minHeight: 40)
             .contentShape(Capsule())
             .background(isSelected ? theme.primary : theme.background.opacity(0.8), in: Capsule())
             .foregroundStyle(isSelected ? .white : theme.primary)
@@ -195,9 +210,68 @@ private struct WrappedChips<Content: View>: View {
     @ViewBuilder var content: Content
 
     var body: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(spacing: 8) { content }
-            VStack(alignment: .leading, spacing: 8) { content }
+        FlowLayout(spacing: 8) {
+            content
         }
+    }
+}
+
+private struct FlowLayout: Layout {
+    let spacing: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let maxWidth = proposal.width ?? .infinity
+        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
+        let rows = arrangedRows(sizes: sizes, maxWidth: maxWidth)
+
+        return CGSize(
+            width: maxWidth.isFinite ? maxWidth : rows.map(\.width).max() ?? 0,
+            height: rows.reduce(0) { $0 + $1.height } + spacing * CGFloat(max(rows.count - 1, 0))
+        )
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let sizes = subviews.map { $0.sizeThatFits(.unspecified) }
+        var origin = bounds.origin
+        var rowHeight: CGFloat = 0
+
+        for index in subviews.indices {
+            let size = sizes[index]
+            if origin.x > bounds.minX, origin.x + size.width > bounds.maxX {
+                origin.x = bounds.minX
+                origin.y += rowHeight + spacing
+                rowHeight = 0
+            }
+
+            subviews[index].place(
+                at: origin,
+                proposal: ProposedViewSize(width: size.width, height: size.height)
+            )
+            origin.x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+        }
+    }
+
+    private func arrangedRows(sizes: [CGSize], maxWidth: CGFloat) -> [(width: CGFloat, height: CGFloat)] {
+        guard !sizes.isEmpty else { return [] }
+
+        var rows: [(width: CGFloat, height: CGFloat)] = []
+        var rowWidth: CGFloat = 0
+        var rowHeight: CGFloat = 0
+
+        for size in sizes {
+            let itemWidth = rowWidth == 0 ? size.width : rowWidth + spacing + size.width
+            if rowWidth > 0, itemWidth > maxWidth {
+                rows.append((rowWidth, rowHeight))
+                rowWidth = size.width
+                rowHeight = size.height
+            } else {
+                rowWidth = itemWidth
+                rowHeight = max(rowHeight, size.height)
+            }
+        }
+
+        rows.append((rowWidth, rowHeight))
+        return rows
     }
 }

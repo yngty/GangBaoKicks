@@ -43,6 +43,7 @@
 "details.actualDuration" = "Actual time";
 "settings.title" = "Settings";
 "settings.theme" = "Theme";
+"settings.appearance" = "Appearance";
 "settings.counting" = "Counting";
 "settings.duration" = "Observation time";
 "settings.duplicateInterval" = "Repeat interval";
@@ -63,3 +64,6 @@
 "theme.peach" = "Warm Peach";
 "theme.sky" = "Sky Calm";
 "theme.lavender" = "Lavender Ease";
+"appearance.system" = "System";
+"appearance.light" = "Light";
+"appearance.dark" = "Dark";
